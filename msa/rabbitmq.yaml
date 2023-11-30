@@ -1,0 +1,19 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1
+  persistence:
+    storage: 1Mi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      cpu: 200m
+      memory: 1Gi
+  rabbitmq:
+    envConfig: |
+      RABBITMQ_DEFAULT_USER=user
+      RABBITMQ_DEFAULT_PASS=1234

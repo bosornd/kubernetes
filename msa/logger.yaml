@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: logger
+  labels:
+    app: logger
+spec:
+  restartPolicy: Always
+  containers:
+  - name: logger
+    image: bosornd/logger
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    env:
+    - name: RABBITMQ_HOST
+      valueFrom:
+        configMapKeyRef:
+          name: config
+          key: RABBITMQ_HOST
+    - name: RABBITMQ_PORT
+      valueFrom:
+        configMapKeyRef:
+          name: config
+          key: RABBITMQ_PORT
+    - name: RABBITMQ_USER
+      valueFrom:
+        configMapKeyRef:
+          name: config
+          key: RABBITMQ_USER
+    - name: RABBITMQ_PASS
+      valueFrom:
+        configMapKeyRef:
+          name: config
+          key: RABBITMQ_PASS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logger
+spec:
+  selector:
+    app: logger
+  type: ClusterIP
+  # sessionAffinity: ClientIP
+  ports:
+  - port: 80

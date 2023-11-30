@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  replicas: 3
+  serviceName: redis
+  selector:
+    matchLabels:
+      db: redis
+  template:
+    metadata:
+      labels:
+        db: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 6379
+        command:
+        - /bin/sh
+        - -c
+        - |
+          if [ `hostname` = redis-0 ]; then
+            redis-server
+          else
+            redis-server --replicaof redis-0.redis.default.svc.cluster.local 6379
+          fi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 1Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    db: redis
+  type: ClusterIP
+  # sessionAffinity: ClientIP
+  ports:
+  - port: 6379
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup
+spec:
+  schedule: "0 4 * * *"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 100
+      completions: 1
+      parallelism: 1
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: backup
+            image: busybox
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - cp /data/dump.rdb /backup/dump-`date +%y-%m-%d`.rdb
+            volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: backup
+              mountPath: /backup
+          volumes:
+          - name: data
+            persistentVolumeClaim:
+              claimName: data-redis-0
+          - name: backup
+            persistentVolumeClaim:
+              claimName: backup
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup
+spec:
+  resources:
+    requests:
+      storage: 100Mi
+  accessModes:
+  - ReadWriteMany

@@ -1,0 +1,5 @@
+FROM node:latest
+COPY fibonacci.js .
+
+EXPOSE 80
+CMD node fibonacci.js

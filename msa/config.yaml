@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  COUNT_DB_URL_FOR_READ: redis://count-db.default.svc.cluster.local:6379
+#  COUNT_DB_URL_FOR_WRITE: redis://count-db-0.count-db.default.svc.cluster.local:6379
+  COUNT_DB_URL_FOR_WRITE: redis://count-db-master.default.svc.cluster.local:6379
+  RABBITMQ_HOST: rabbitmq.default.svc.cluster.local
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_USER: user
+  RABBITMQ_PASS: "1234"

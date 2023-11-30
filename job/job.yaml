@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: html-updater
+spec:
+  ttlSecondsAfterFinished: 100
+  completions: 10
+  parallelism: 4
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: html-updater
+        image: bosornd/git
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/sh
+        - -c
+        - rm -Rf /html; git clone https://github.com/bosornd/test-web.git /html
+        volumeMounts:
+        - name: html
+          mountPath: /html
+      volumes:
+      - name: html
+        persistentVolumeClaim:
+          claimName: html

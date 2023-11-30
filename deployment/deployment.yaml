@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hostname
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: hostname
+  template:
+    metadata:
+      labels:
+        app: hostname
+    spec:
+      containers:
+      - name: hostname
+        image: bosornd/hostname
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80

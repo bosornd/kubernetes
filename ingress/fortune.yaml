@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortune-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fortune-server
+  template:
+    metadata:
+      labels:
+        app: fortune-server
+    spec:
+      containers:
+      - name: fortune-server
+        image: nginx
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: html
+        persistentVolumeClaim:
+          claimName: fortune-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortune-server
+spec:
+  selector:
+    app: fortune-server
+  type: ClusterIP
+  # sessionAffinity: ClientIP
+  ports:
+  - port: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fortune-server
+spec:
+  resources:
+    requests:
+      storage: 1Ki
+  accessModes:
+  - ReadWriteMany
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fortune-updater
+  labels:
+    app: fortune-updater
+spec:
+  restartPolicy: Always
+  containers:
+  - name: fortune-updater
+    image: bosornd/fortune
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - name: html
+      mountPath: /html
+  volumes:
+  - name: html
+    persistentVolumeClaim:
+      claimName: fortune-server

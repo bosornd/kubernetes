@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: downward
+  labels:
+    app: downward
+spec:
+  restartPolicy: Always
+  containers:
+  - name: downward
+    image: busybox
+    imagePullPolicy: IfNotPresent
+    stdin: true
+    tty: true
+    env:
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          fieldPath: metadata.name
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
+    - name: USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: secret
+          key: username
+    - name: PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: secret
+          key: password
+    volumeMounts:
+    - name: downward
+      mountPath: /downward
+  volumes:
+  - name: downward
+    downwardAPI:
+      items:
+      - path: name
+        fieldRef:
+          fieldPath: metadata.name
+      - path: labels
+        fieldRef:
+          fieldPath: metadata.labels

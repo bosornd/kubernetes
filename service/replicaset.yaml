@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: web-server
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      tier: frontend
+    matchExpressions:
+    - key: app
+      operator: In
+      values:
+      - web-server
+      - hostname
+  template:
+    metadata:
+      labels:
+        tier: frontend
+        app: web-server
+    spec:
+      containers:
+      - name: web-server
+        image: bosornd/hostname
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+  
