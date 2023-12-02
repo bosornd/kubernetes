@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: worker1
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 100
+      completions: 3
+      parallelism: 3
+      backoffLimit: 4
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: worker1
+            image: bosornd/job-worker
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: JOB_WORKER
+              value: worker1
+            - name: JOB_QUEUE_URL
+              value: http://job-queue.default.svc.cluster.local:8888

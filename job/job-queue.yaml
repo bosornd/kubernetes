@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: job-queue
+  labels:
+    app: job-queue
+spec:
+  restartPolicy: Always
+  containers:
+  - name: job-queue
+    image: bosornd/job-queue
+    imagePullPolicy: IfNotPresent
+    ports:
+    - containerPort: 80
+    env:
+    - name: JOB_DB_URL_FOR_READ
+      value: redis://redis.default.svc.cluster.local:6379
+    - name: JOB_DB_URL_FOR_WRITE
+      value: redis://redis-0.redis.default.svc.cluster.local:6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: job-queue
+spec:
+  selector:
+    app: job-queue
+  type: ClusterIP
+  # sessionAffinity: ClientIP
+  ports:
+  - port: 8888
+    targetPort: 80
